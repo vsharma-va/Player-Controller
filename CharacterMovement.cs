@@ -5,11 +5,11 @@ using UnityEngine;
 
 public class CharacterMovement : MonoBehaviour
 {
-    public float movementForce = 10F;
-    public float jumpForce = 3F;
+    public float movementForce = 7F;
+    public float jumpForce = 2.3F;
     public float jumpCoolDown;
     public float jumpCounterResetTime;
-    public float sprintForce = 20F;
+    public float sprintForce;
     public bool isGrounded = false;
 
 
@@ -19,6 +19,8 @@ public class CharacterMovement : MonoBehaviour
     private float jumpCompleteReset;
     private int numberOfJumps = 0;
     private float nextJumpTime;
+    private bool spacePressed = false;
+    private bool lShiftPressed = false;
     [SerializeField]
     private RaycastHit groundCheck;
     private Rigidbody rb;
@@ -32,8 +34,9 @@ public class CharacterMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
-            
+        spacePressed = Input.GetKeyDown(KeyCode.Space);
+        lShiftPressed = Input.GetKey(KeyCode.LeftShift);
+
     }
 
 
@@ -50,7 +53,7 @@ public class CharacterMovement : MonoBehaviour
         playerMovement.x = Input.GetAxis("Horizontal");
         playerMovement.y = Input.GetAxis("Vertical");
         playerMovement.Normalize();
-        
+
         rb.AddForce(playerMovement.x * movementForce, rb.velocity.y, playerMovement.y * movementForce, ForceMode.Force);
     }
 
@@ -69,15 +72,18 @@ public class CharacterMovement : MonoBehaviour
         }
         if(Time.time > nextJumpTime) //if the current time in unity is greater than the nextJumpTime then the player can jump
         {
-            if(Input.GetKeyDown(KeyCode.Space) && isGrounded && numberOfJumps <= jumpsInARow)
+            if(spacePressed && isGrounded && numberOfJumps <= jumpsInARow)
             {
                 rb.AddForce(0, jumpForce, 0, ForceMode.Impulse);
                 numberOfJumps++;
                 jumpCompleteReset = Time.time + jumpCounterResetTime;
+                spacePressed = false;
+                Debug.Log("Jumping");
             }
             else if(numberOfJumps > jumpsInARow)
             {
                 nextJumpTime = Time.time + jumpCoolDown;
+                Debug.Log("Cooldown");
                 //what the above line is doing is that it is adding some seconds to the current time so that
                 //nextJumpTime becomes greater than Time.time 
                 //therefore the player will have to wait for Time.time to catch up with nextJumpTime which will act as a
@@ -87,29 +93,24 @@ public class CharacterMovement : MonoBehaviour
         if(Time.time > jumpCompleteReset)
         {
             numberOfJumps = 0;
+            Debug.Log("Jumps reset");
         }
         
     }
 
     private void sprint()
     {
-        if(Input.GetKey(KeyCode.LeftShift))
+        if(lShiftPressed)
         {
             Vector2 playerMovement = new Vector2();
             playerMovement.x = Input.GetAxis("Horizontal");
             playerMovement.y = Input.GetAxis("Vertical");
             playerMovement.Normalize();
 
-            rb.AddForce(playerMovement.x * sprintForce, rb.velocity.y, playerMovement.y * sprintForce);
+            rb.AddForce(playerMovement.x * sprintForce, rb.velocity.y, playerMovement.y * sprintForce, ForceMode.Impulse);
             Debug.Log("Working");
         }
     }
 
-    private void userKeyInput()
-    {
-        Vector2 playerMovement = new Vector2();
-        playerMovement.x = Input.GetAxis("Horizontal");
-        playerMovement.y = Input.GetAxis("Vertical");
-        playerMovement.Normalize();
-    }
+
 }
